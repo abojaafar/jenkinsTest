@@ -405,14 +405,61 @@ public abstract class IdStrategy extends AbstractDescribableImpl<IdStrategy> imp
              return buf.toString();
 		}
 
+        /**
+         * 
+         * @param id
+         * @return
+         */
+        private String getComId (String id)
+        {
+        	return getIdByType(id, "com", "$0063om");
+        }
+        
+        private String getLptID (String id)
+        {
+        	return getIdByType(id, "lpt", "$006cpt");
+        }
+        
+        /**
+         * 
+         * @param id
+         * @param type
+         * @param prefix
+         * @return
+         */
+        private String getIdByType(String id, String type, String prefix)
+        {
+        	int numberId = Integer.parseInt(id.split(type)[1]);
+        	if (numberId >= 1 && numberId <= 9)
+        		return prefix + Integer.toString(numberId);
+        	return null;
+        }
+        
 		/**
          * 
          * @param id
          * @return
          */
         private String getMatchesId(String id) 
-        {
-        	switch (id) 
+        {        	
+        	if (getComId(id) != null)
+        		return getComId(id);
+        	else if (getLptID(id) != null)
+        		return getLptID(id);
+        	else
+        	{
+        		return getOtherTypeId (id);
+        	}        		
+		}
+
+        /**
+         * 
+         * @param id
+         * @return
+         */
+		private String getOtherTypeId(String id)
+		{
+			switch (id) 
             {
                 case "":
                 case ".":
@@ -426,54 +473,29 @@ public abstract class IdStrategy extends AbstractDescribableImpl<IdStrategy> imp
                 case "aux":
                     return "$0061ux";
                 case "nul":
-                    return "$006eul";
-                case "com1":
-                    return "$0063om1";
-                case "com2":
-                    return "$0063om2";
-                case "com3":
-                    return "$0063om3";
-                case "com4":
-                    return "$0063om4";
-                case "com5":
-                    return "$0063om5";
-                case "com6":
-                    return "$0063om6";
-                case "com7":
-                    return "$0063om7";
-                case "com8":
-                    return "$0063om8";
-                case "com9":
-                    return "$0063om9";
-                case "lpt1":
-                    return "$006cpt1";
-                case "lpt2":
-                    return "$006cpt2";
-                case "lpt3":
-                    return "$006cpt3";
-                case "lpt4":
-                    return "$006cpt4";
-                case "lpt5":
-                    return "$006cpt5";
-                case "lpt6":
-                    return "$006cpt6";
-                case "lpt7":
-                    return "$006cpt7";
-                case "lpt8":
-                    return "$006cpt8";
-                case "lpt9":
-                    return "$006cpt9";
+                    return "$006eul";                
+                
                 default:
-                    if (id.endsWith(".")) 
-                    {
-                        return id.substring(0,id.length()-1)+"$002e";
-                    }
-                    else if (id.startsWith("-")) 
-                    {
-                        return "$002d" + id.substring(1);
-                    }
-                    return id;
-            }			
+                   getDefaultId(id);
+            }		
+		}
+
+		/**
+		 * 
+		 * @param id
+		 * @return
+		 */
+		private String getDefaultId(String id)
+		{
+			 if (id.endsWith(".")) 
+             {
+                 return id.substring(0,id.length()-1)+"$002e";
+             }
+             else if (id.startsWith("-")) 
+             {
+                 return "$002d" + id.substring(1);
+             }
+             return id;					
 		}
 
 		/**
