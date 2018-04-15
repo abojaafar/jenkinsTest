@@ -164,97 +164,111 @@ public abstract class IdStrategy extends AbstractDescribableImpl<IdStrategy> imp
     }
 
     /**
+     * 
+     * @param id
+     * @param type
+     * @param prefix
+     * @return
+     */
+    public String getIdByType(String id, String type, String prefix)
+    {
+    	int numberId = Integer.parseInt(id.split(type)[1]);
+    	if (numberId >= 1 && numberId <= 9)
+    		return prefix + Integer.toString(numberId);
+    	return null;
+    }
+
+    /**
+     * 
+     * @param buf
+     * @param c
+     */
+    public void appendCharacter2Buffer(StringBuilder buf, char c) 
+    {
+    	if ( ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') ||
+       		 ('_' == c || '-' == c || ' ' == c || '@' == c || '.' == c))  
+        {
+            buf.append(c);
+        }
+        else if ('A' <= c && c <= 'Z') 
+        {
+            buf.append('~');
+            buf.append(Character.toLowerCase(c));
+        }
+        else 
+        {
+            buf.append('$');
+            buf.append(StringUtils.leftPad(Integer.toHexString(c & 0xffff), 4, '0'));
+        }
+	}
+
+    
+    /**
      * The default case insensitive {@link IdStrategy}
      */
     public static class CaseInsensitive extends IdStrategy {
 
         @DataBoundConstructor
         public CaseInsensitive() {}
-
+       
         @Override
         @Nonnull
-        public String filenameOf(@Nonnull String id) {
-            if (id.isEmpty() || id.matches("[a-zA-Z0-9_. @-]+")) {
+        public String filenameOf(@Nonnull String id) 
+        {
+            if (id.isEmpty() || id.matches("[a-zA-Z0-9_. @-]+")) 
+            {
                 id = id.toLowerCase(Locale.ENGLISH);
-                switch (id) {
-                    case "":
-                    case ".":
-                        return "$002f";
-                    case "..":
-                        return "$002e$002e";
-                    case "con":
-                        return "$0063on";
-                    case "prn":
-                        return "$0070rn";
-                    case "aux":
-                        return "$0061ux";
-                    case "nul":
-                        return "$006eul";
-                    case "com1":
-                        return "$0063om1";
-                    case "com2":
-                        return "$0063om2";
-                    case "com3":
-                        return "$0063om3";
-                    case "com4":
-                        return "$0063om4";
-                    case "com5":
-                        return "$0063om5";
-                    case "com6":
-                        return "$0063om6";
-                    case "com7":
-                        return "$0063om7";
-                    case "com8":
-                        return "$0063om8";
-                    case "com9":
-                        return "$0063om9";
-                    case "lpt1":
-                        return "$006cpt1";
-                    case "lpt2":
-                        return "$006cpt2";
-                    case "lpt3":
-                        return "$006cpt3";
-                    case "lpt4":
-                        return "$006cpt4";
-                    case "lpt5":
-                        return "$006cpt5";
-                    case "lpt6":
-                        return "$006cpt6";
-                    case "lpt7":
-                        return "$006cpt7";
-                    case "lpt8":
-                        return "$006cpt8";
-                    case "lpt9":
-                        return "$006cpt9";
-                    default:
-                        if (id.endsWith(".")) {
-                            return id.substring(0,id.length()-1)+"$002e";
-                        } else if (id.startsWith("-")) {
-                            return "$002d" + id.substring(1);
-                        }
-                        return id;
-                }
-            } else {
+                
+                if (getIdByType(id, "com", "$0063om") != null)
+                	return getIdByType(id, "com", "$0063om");
+                else if (getIdByType(id, "lpt", "$006cpt") != null)
+                	return getIdByType(id, "com", "006cpt");
+                else
+                return getOtherId(id);                
+            } 
+            else 
+            {
                 StringBuilder buf = new StringBuilder(id.length() + 16);
-                for (char c : id.toCharArray()) {
-                    if ('a' <= c && c <= 'z') {
-                        buf.append(c);
-                    } else if ('A' <= c && c <= 'Z') {
-                        buf.append(Character.toLowerCase(c));
-                    } else if ('0' <= c && c <= '9') {
-                        buf.append(c);
-                    } else if ('_' == c || '-' == c || ' ' == c || '@' == c || '.' == c) {
-                        buf.append(c);
-                    } else {
-                        buf.append('$');
-                        buf.append(StringUtils.leftPad(Integer.toHexString(c & 0xffff), 4, '0'));
-                    }
+                for (char c : id.toCharArray()) 
+                {
+                	appendCharacter2Buffer(buf, c);
                 }
                 return buf.toString();
             }
         }
+        
+        /**
+         * 
+         * @param id
+         * @return
+         */
+        private String getOtherId(String id) 
+        {
+        	switch (id) 
+            {
+                case "":
+                case ".":
+                    return "$002f";
+                case "..":
+                    return "$002e$002e";
+                case "con":
+                    return "$0063on";
+                case "prn":
+                    return "$0070rn";
+                case "aux":
+                    return "$0061ux";
+                case "nul":
+                    return "$006eul";
+                default:
+                    if (id.endsWith(".")) 
+                    	return id.substring(0,id.length()-1)+"$002e";
+                    else if (id.startsWith("-"))
+                    	return "$002d" + id.substring(1);
+                    return id;
+             }
+		}
 
-        @Nonnull
+		@Nonnull
         @Override
         public String legacyFilenameOf(@Nonnull String id) {
             return id.toLowerCase(Locale.ENGLISH);
@@ -379,33 +393,12 @@ public abstract class IdStrategy extends AbstractDescribableImpl<IdStrategy> imp
         	 StringBuilder buf = new StringBuilder(id.length() + 16);
              for (char c : id.toCharArray()) 
              {
-                 if ('a' <= c && c <= 'z') 
-                 {
-                     buf.append(c);
-                 }
-                 else if ('0' <= c && c <= '9') 
-                 {
-                     buf.append(c);
-                 }
-                 else if ('_' == c || '-' == c || ' ' == c || '@' == c || '.' == c) 
-                 {
-                     buf.append(c);
-                 }
-                 else if ('A' <= c && c <= 'Z') 
-                 {
-                     buf.append('~');
-                     buf.append(Character.toLowerCase(c));
-                 }
-                 else 
-                 {
-                     buf.append('$');
-                     buf.append(StringUtils.leftPad(Integer.toHexString(c & 0xffff), 4, '0'));
-                 }
+                 appendCharacter2Buffer(buf,c);
              }
              return buf.toString();
 		}
 
-        /**
+		/**
          * 
          * @param id
          * @return
@@ -421,21 +414,6 @@ public abstract class IdStrategy extends AbstractDescribableImpl<IdStrategy> imp
         }
         
         /**
-         * 
-         * @param id
-         * @param type
-         * @param prefix
-         * @return
-         */
-        private String getIdByType(String id, String type, String prefix)
-        {
-        	int numberId = Integer.parseInt(id.split(type)[1]);
-        	if (numberId >= 1 && numberId <= 9)
-        		return prefix + Integer.toString(numberId);
-        	return null;
-        }
-        
-		/**
          * 
          * @param id
          * @return
